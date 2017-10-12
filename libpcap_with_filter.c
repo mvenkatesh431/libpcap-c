@@ -6,9 +6,11 @@ int main(int argc, char const *argv[]) {
     struct bpf_program fp;   /* stroring compiled filter */
     char errbuf[PCAP_ERRBUF_SIZE];  /* Error Buf */
     char dev[] = "eth1";            /* Device to Sniff */
-    char filter[] = "port 5060";      /* Capture Filter, Let's capture some SIP :) */
+    char filter[] = "port 80";      /* Capture Filter */
     bpf_u_int32 mask;		/* The netmask of our sniffing device */
     bpf_u_int32 net;		/* The IP of our sniffing device */
+    struct pcap_pkthdr header;	/* The header that pcap gives us */
+    const u_char *packet;		/* The actual packet */
 
     if (pcap_lookupnet(dev, &net, &mask, errbuf) == -1) {
         fprintf(stderr, "Can't get netmask for device %s\n", dev);
@@ -32,6 +34,12 @@ int main(int argc, char const *argv[]) {
         fprintf(stderr, "Couldn't install filter %s: %s\n", filter, pcap_geterr(handle));
         return(2);
     }
+
+    packet = pcap_next(handle, &header);
+    /* Print its length */
+	printf("Got one packet with length of [%d]\n", header.len);
+	/* And close the session */
+    pcap_close(handle);
 
     return 0;
 }
